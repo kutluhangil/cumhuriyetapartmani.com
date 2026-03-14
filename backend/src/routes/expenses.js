@@ -6,10 +6,11 @@ const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Ensure uploads dir exists
-const uploadsDir = path.join(__dirname, '../../uploads');
+// Ensure uploads dir exists (use /tmp on Vercel serverless, else local uploads dir)
+const isVercel = !!process.env.VERCEL;
+const uploadsDir = isVercel ? '/tmp' : path.join(__dirname, '../../uploads');
 const fs = require('fs');
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+if (!isVercel && !fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 const storage = multer.diskStorage({
   destination: uploadsDir,
