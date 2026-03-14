@@ -112,7 +112,7 @@ async function seed() {
   await exec(`INSERT OR IGNORE INTO aidats (month, year, amount) VALUES (?, ?, ?)`,
     [3, 2024, 1000]);
 
-  const aidatMarch = (await db.execute({ sql: `SELECT id FROM aidats WHERE month = 3 AND year = 2024` })).rows[0];
+  const aidatMarch = (await db.execute('SELECT id FROM aidats WHERE month = 3 AND year = 2024')).rows[0];
   if (aidatMarch) {
     const apts = (await db.execute('SELECT id FROM apartments ORDER BY number ASC')).rows;
     const statuses = ['paid','paid','unpaid','paid','paid','pending','paid','paid','unpaid','paid','paid','unpaid','paid','paid','paid','unpaid','pending','paid'];
