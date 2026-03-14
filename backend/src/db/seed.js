@@ -1,3 +1,4 @@
+require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env') });
 const bcrypt = require('bcryptjs');
 const { db, initDb } = require('./database');
 
@@ -29,12 +30,23 @@ async function seed() {
   await initDb();
 
   console.log('👤 Seeding users...');
-  const managerHash = await bcrypt.hash('manager123', 10);
-  const adminHash = await bcrypt.hash('admin123', 10);
+  const managerPassword = process.env.MANAGER_PASSWORD;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!managerPassword || !adminPassword) {
+    console.error('❌ Hata: .env dosyasında MANAGER_PASSWORD ve ADMIN_PASSWORD tanımlı olmalıdır. Çalıştırılmadı.');
+    process.exit(1);
+  }
+
+  const managerEmail = process.env.MANAGER_EMAIL || 'murat@cumhuriyet.com';
+  const adminEmail = process.env.ADMIN_EMAIL || 'kutluhan@cumhuriyet.com';
+
+  const managerHash = await bcrypt.hash(managerPassword, 10);
+  const adminHash = await bcrypt.hash(adminPassword, 10);
   await exec(`INSERT OR IGNORE INTO users (email, password_hash, name, role) VALUES (?, ?, ?, ?)`,
-    ['murat@cumhuriyet.com', managerHash, 'Murat Ataç', 'manager']);
+    [managerEmail, managerHash, 'Murat', 'manager']);
   await exec(`INSERT OR IGNORE INTO users (email, password_hash, name, role) VALUES (?, ?, ?, ?)`,
-    ['kutluhan@cumhuriyet.com', adminHash, 'Kutluhan Gül', 'admin']);
+    [adminEmail, adminHash, 'Kutluhan', 'admin']);
 
   console.log('🏘 Seeding 18 apartments...');
   for (const apt of apartments) {
@@ -112,8 +124,8 @@ async function seed() {
   }
 
   console.log('\n🎉 Database seeded successfully!');
-  console.log('📧 Manager: murat@cumhuriyet.com / manager123');
-  console.log('📧 Admin:   kutluhan@cumhuriyet.com / admin123');
+  console.log(`📧 Manager: ${process.env.MANAGER_EMAIL || 'murat@cumhuriyet.com'}`);
+  console.log(`📧 Admin:   ${process.env.ADMIN_EMAIL || 'kutluhan@cumhuriyet.com'}`);
   process.exit(0);
 }
 

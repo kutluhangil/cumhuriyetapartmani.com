@@ -226,36 +226,6 @@ http://localhost:5173
 
 ---
 
-## 🔑 Default Credentials
-
-<table>
-<thead>
-<tr>
-<th>Role</th>
-<th>Email</th>
-<th>Password</th>
-<th>Access</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>🏠 <strong>Manager</strong></td>
-<td><code>murat@cumhuriyet.com</code></td>
-<td><code>manager123</code></td>
-<td>Full dashboard access</td>
-</tr>
-<tr>
-<td>⚙️ <strong>Admin</strong></td>
-<td><code>kutluhan@cumhuriyet.com</code></td>
-<td><code>admin123</code></td>
-<td>Full dashboard + system access</td>
-</tr>
-</tbody>
-</table>
-
-> ⚠️ **Production Note:** Change these credentials and set `JWT_SECRET` as an environment variable before deploying.
-
----
 
 ## 📡 API Reference
 
