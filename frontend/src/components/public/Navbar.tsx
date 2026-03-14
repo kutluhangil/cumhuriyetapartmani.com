@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 const links = [
@@ -11,8 +11,6 @@ const links = [
 export default function Navbar() {
   const { isAuthenticated } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
-  const location = useLocation();
-
   return (
     <header className="sticky top-0 z-50 w-full apple-blur bg-background-light/80 dark:bg-background-dark/80 border-b border-primary/10">
       <div className="max-w-7xl mx-auto px-5 h-16 flex items-center justify-between">

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { expensesApi, aidatsApi, apartmentsApi } from '../../api';
+import { expensesApi, apartmentsApi } from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
 
 const formatCurrency = (n: number) =>

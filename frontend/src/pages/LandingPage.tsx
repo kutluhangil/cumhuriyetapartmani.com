@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { timelineApi } from '../api';
 import Navbar from '../components/public/Navbar';
 
@@ -18,8 +18,6 @@ const formatCurrency = (n: number) =>
 
 export default function LandingPage() {
   const [timeline, setTimeline] = useState<TimelineEntry[]>([]);
-  const navigate = useNavigate();
-
   useEffect(() => {
     timelineApi.getAll().then(r => setTimeline(r.data)).catch(() => {
       setTimeline([

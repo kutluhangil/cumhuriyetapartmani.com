@@ -23,9 +23,6 @@ export default function DashboardLayout() {
     navigate('/giris', { replace: true });
   };
 
-  const isActive = (href: string, exact?: boolean) =>
-    exact ? location.pathname === href : location.pathname.startsWith(href) && href !== '/dashboard';
-
   return (
     <div className="flex min-h-screen bg-background-light dark:bg-background-dark">
       {/* Sidebar overlay (mobile) */}
