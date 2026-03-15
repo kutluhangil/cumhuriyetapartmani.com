@@ -9,9 +9,9 @@ const MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağu
 const formatCurrency = (n: number) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(n);
 
 const statusConfig = {
-  paid: { label: '🟢 Ödendi', cls: 'bg-emerald-100/80 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30' },
-  pending: { label: '🟡 Bekliyor', cls: 'bg-amber-100/80 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30' },
-  unpaid: { label: '🔴 Ödenmedi', cls: 'bg-red-100/80 text-red-800 dark:bg-red-500/20 dark:text-red-400 border border-red-200 dark:border-red-500/30' },
+  paid: { label: '✔ Ödendi', cls: 'bg-green-100 text-green-700 hover:shadow-sm hover:scale-105 transition-all duration-200 dark:bg-green-500/20 dark:text-green-400 border border-transparent dark:border-green-500/30' },
+  pending: { label: '● Bekliyor', cls: 'bg-amber-100 text-amber-700 hover:shadow-sm hover:scale-105 transition-all duration-200 dark:bg-amber-500/20 dark:text-amber-400 border border-transparent dark:border-amber-500/30' },
+  unpaid: { label: '✖ Ödenmedi', cls: 'bg-red-100 text-red-700 hover:shadow-sm hover:scale-105 transition-all duration-200 dark:bg-red-500/20 dark:text-red-400 border border-transparent dark:border-red-500/30' },
 };
 
 interface Payment { id: number; apartment_number: number; owner_name: string; status: string; note: string; paid_at: string; }
@@ -230,19 +230,25 @@ export default function AidatPage() {
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {payments.map(p => {
                   const s = statusConfig[p.status as keyof typeof statusConfig] || statusConfig.unpaid;
+                  
+                  // Row highlight logic based on status
+                  let rowBorderCls = "border-l-4 border-transparent";
+                  if (p.status === 'paid') rowBorderCls = "border-l-4 border-green-400 dark:border-green-500";
+                  else if (p.status === 'unpaid') rowBorderCls = "border-l-4 border-red-400 dark:border-red-500";
+                  
                   return (
-                    <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/20">
+                    <tr key={p.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors ${rowBorderCls}`}>
                       <td className="px-5 py-3.5 font-medium text-sm">Daire {p.apartment_number}</td>
                       <td className="px-5 py-3.5 text-sm text-slate-600 dark:text-slate-400">{p.owner_name}</td>
                       <td className="px-5 py-3.5 hidden md:table-cell text-sm">{formatCurrency(selectedAidat?.amount || 1000)}</td>
                       <td className="px-5 py-3.5 text-center">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${s.cls}`}>{s.label}</span>
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${s.cls}`}>{s.label}</span>
                       </td>
                       <td className="px-5 py-3.5">
                         <select
                           value={p.status}
                           onChange={e => handleStatusChange(p.id, e.target.value)}
-                          className="text-xs border border-slate-200 rounded py-1 px-2 bg-white dark:bg-slate-800"
+                          className="text-sm border border-gray-300 rounded-lg py-1.5 px-2 bg-white dark:bg-slate-800 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-600 transition-all duration-200 cursor-pointer hover:border-gray-400"
                         >
                           <option value="paid">Ödendi</option>
                           <option value="pending">Beklemede</option>
