@@ -33,6 +33,13 @@ export const authApi = {
 export const apartmentsApi = {
   getAll: () => api.get('/apartments'),
   update: (id: number, data: object) => api.put(`/apartments/${id}`, data),
+  uploadPhoto: (id: number, file: File) => {
+    const formData = new FormData();
+    formData.append('photo', file);
+    return api.post(`/apartments/${id}/photo`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  }
 };
 
 // ─── Aidats ──────────────────────────────────────────────────────────────────

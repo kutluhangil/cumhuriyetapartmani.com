@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS apartments (
   owner_name TEXT NOT NULL,
   floor INTEGER DEFAULT 0,
   profession TEXT,
+  owner_photo TEXT,
   notes TEXT
 );
 

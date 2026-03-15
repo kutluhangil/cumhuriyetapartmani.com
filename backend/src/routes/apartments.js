@@ -1,6 +1,30 @@
 const express = require('express');
 const { getAll, getOne, run } = require('../db/database');
 const { authenticateToken } = require('../middleware/auth');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Vercel only allows writing to /tmp
+const uploadDest = process.env.VERCEL ? '/tmp' : path.join(__dirname, '../../uploads');
+if (!fs.existsSync(uploadDest)) fs.mkdirSync(uploadDest, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDest),
+  filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`)
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.mimetype)) {
+      return cb(new Error('Yalnızca JPG, PNG veya WEBP formatlarına izin verilir.'));
+    }
+    cb(null, true);
+  }
+});
 
 const router = express.Router();
 
@@ -21,10 +45,25 @@ router.get('/:id', async (req, res, next) => {
 
 router.put('/:id', authenticateToken, async (req, res, next) => {
   try {
-    const { owner_name, floor, profession, notes } = req.body;
-    await run('UPDATE apartments SET owner_name = ?, floor = ?, profession = ?, notes = ? WHERE id = ?',
-      [owner_name, floor, profession || null, notes || null, req.params.id]);
+    const { owner_name, floor, profession, notes, owner_photo } = req.body;
+    await run('UPDATE apartments SET owner_name = ?, floor = ?, profession = ?, notes = ?, owner_photo = ? WHERE id = ?',
+      [owner_name, floor, profession || null, notes || null, owner_photo || null, req.params.id]);
     res.json({ success: true });
+  } catch (err) { next(err); }
+});
+
+router.post('/:id/photo', authenticateToken, upload.single('photo'), async (req, res, next) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'Dosya yüklenemedi.' });
+    
+    // Store relative path
+    const photoPath = `/uploads/${req.file.filename}`;
+    
+    await run('UPDATE apartments SET owner_photo = ? WHERE id = ?', [photoPath, req.params.id]);
+    
+    // In Vercel, this won't persist across instances, but /tmp is the only writable place.
+    // For a real production app you would use S3/Cloudinary here.
+    res.json({ success: true, url: photoPath });
   } catch (err) { next(err); }
 });
 

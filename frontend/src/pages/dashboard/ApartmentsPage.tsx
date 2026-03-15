@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { apartmentsApi } from '../../api';
 import toast from 'react-hot-toast';
 
-interface Apartment { id: number; number: number; owner_name: string; floor: number; profession?: string; notes: string; }
+interface Apartment { id: number; number: number; owner_name: string; floor: number; profession?: string; owner_photo?: string; notes: string; }
 
 export default function ApartmentsPage() {
   const [apartments, setApartments] = useState<Apartment[]>([]);
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState<Apartment | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     apartmentsApi.getAll().then(r => setApartments(r.data)).catch(() => {});
@@ -26,6 +27,25 @@ export default function ApartmentsPage() {
       toast.success('Güncellendi!');
       setEditing(null);
     } catch { toast.error('Güncelleme başarısız.'); }
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!editing || !e.target.files?.[0]) return;
+    const file = e.target.files[0];
+    if (file.size > 5 * 1024 * 1024) return toast.error('Dosya çok büyük (Max 5MB)');
+    
+    setUploading(true);
+    try {
+      const res = await apartmentsApi.uploadPhoto(editing.id, file);
+      const newPhotoUrl = res.data.url;
+      setEditing({ ...editing, owner_photo: newPhotoUrl });
+      setApartments(prev => prev.map(a => a.id === editing.id ? { ...a, owner_photo: newPhotoUrl } : a));
+      toast.success('Fotoğraf yüklendi!');
+    } catch {
+      toast.error('Fotoğraf yüklenemedi.');
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -66,31 +86,33 @@ export default function ApartmentsPage() {
             </div>
             {apt.notes && !apt.profession && <p className="text-xs text-slate-500 bg-slate-50 dark:bg-slate-800 rounded-lg px-3 py-2 mt-2">{apt.notes}</p>}
 
-            {/* Hover Tooltip/Modal */}
-            <div className="absolute left-0 bottom-full mb-3 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 p-4 opacity-0 pointer-events-none scale-95 origin-bottom group-hover:opacity-100 group-hover:scale-100 transition-all duration-300 z-50">
-              <div className="flex items-center gap-3 mb-2 pb-2 border-b border-slate-100 dark:border-slate-700">
-                <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-slate-500 text-sm">person</span>
+            {/* Hover Tooltip/Modal (Fixing visibility issues) */}
+            <div className="absolute left-1/2 -ml-32 bottom-full mb-4 w-64 rounded-2xl p-[2px] opacity-0 pointer-events-none scale-95 origin-bottom group-hover:opacity-100 group-hover:scale-100 transition-all duration-300 z-50 shadow-2xl overflow-hidden
+                            bg-gradient-to-r from-red-500 via-yellow-500 to-purple-500 animate-gradient-xy">
+              {/* Inner card content */}
+              <div className="w-full h-full bg-white dark:bg-slate-900 rounded-[14px] p-4 relative z-10 flex flex-col items-center text-center">
+                
+                <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-slate-100 dark:border-slate-800 mb-3 bg-slate-100 dark:bg-slate-800 flex-shrink-0">
+                  {apt.owner_photo ? (
+                    <img src={`/api${apt.owner_photo}`} alt={apt.owner_name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="material-symbols-outlined text-slate-400 text-3xl absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">person</span>
+                  )}
                 </div>
-                <div>
-                  <h4 className="font-bold text-sm leading-tight text-slate-900 dark:text-slate-100">{apt.owner_name}</h4>
-                  <p className="text-xs text-slate-500">Daire {apt.number}</p>
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">Meslek:</span>
-                  <span className="font-medium text-slate-700 dark:text-slate-300">{apt.profession || 'Belirtilmedi'}</span>
-                </div>
+                
+                <h4 className="font-bold text-base leading-tight text-slate-900 dark:text-slate-100 mb-1">{apt.owner_name}</h4>
+                <p className="text-xs text-primary font-medium mb-3">{apt.profession || 'Daire Sakini'}</p>
+                
                 {apt.notes && (
-                  <div className="ext-sm mt-2 pt-2 border-t border-slate-100 dark:border-slate-700">
-                    <span className="text-xs text-slate-500 block mb-0.5">Not:</span>
-                    <span className="text-xs font-medium text-slate-700 dark:text-slate-300">{apt.notes}</span>
+                  <div className="text-xs text-slate-500 bg-slate-50 dark:bg-slate-800/50 rounded-lg p-2 w-full text-center">
+                    {apt.notes}
                   </div>
                 )}
+                
               </div>
-              {/* Tooltip bottom arrow */}
-              <div className="absolute left-6 -bottom-2 w-4 h-4 bg-white dark:bg-slate-800 border-b border-r border-slate-200 dark:border-slate-700 transform rotate-45"></div>
+              
+              {/* Tooltip bottom arrow matching gradient */}
+              <div className="absolute left-1/2 -bottom-2 -ml-2 w-4 h-4 bg-purple-500 transform rotate-45 z-0 clip-path-bottom"></div>
             </div>
           </div>
         ))}
@@ -106,6 +128,25 @@ export default function ApartmentsPage() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1.5">Daire Sahibi</label>
+              <div className="flex items-center gap-4 mb-3">
+                <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 flex-shrink-0 relative border border-slate-200 dark:border-slate-700">
+                  {editing.owner_photo ? (
+                    <img src={`/api${editing.owner_photo}`} alt="Owner" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="material-symbols-outlined text-slate-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">person</span>
+                  )}
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-primary cursor-pointer hover:underline flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[16px]">upload</span>
+                    Fotoğraf Yükle
+                    {uploading && <span className="material-symbols-outlined text-[16px] animate-spin">refresh</span>}
+                    <input type="file" className="hidden" accept="image/jpeg, image/png, image/webp" onChange={handlePhotoUpload} disabled={uploading} />
+                  </label>
+                  <p className="text-[10px] text-slate-400">Format: JPG, PNG, WEBP. Maksimum: 5MB</p>
+                </div>
+              </div>
+
               <input className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" value={editing.owner_name} onChange={e => setEditing(p => p ? ({ ...p, owner_name: e.target.value }) : null)} />
             </div>
             <div>
