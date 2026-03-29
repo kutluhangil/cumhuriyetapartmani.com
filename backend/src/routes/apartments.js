@@ -1,6 +1,6 @@
 const express = require('express');
 const { getAll, getOne, run } = require('../db/database');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, authorizeRole } = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -11,15 +11,22 @@ if (!fs.existsSync(uploadDest)) fs.mkdirSync(uploadDest, { recursive: true });
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDest),
-  filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`)
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname) || '';
+    const safeName = Math.round(Math.random() * 1e9).toString(36);
+    cb(null, `${Date.now()}-${safeName}${ext}`);
+  }
 });
 
 const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
   fileFilter: (req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    if (!allowedTypes.includes(file.mimetype)) {
+    const allowedMime = ['image/jpeg', 'image/png', 'image/webp'];
+    const allowedExt = ['.jpg', '.jpeg', '.png', '.webp'];
+    const ext = path.extname(file.originalname).toLowerCase();
+
+    if (!allowedMime.includes(file.mimetype) || !allowedExt.includes(ext)) {
       return cb(new Error('Yalnızca JPG, PNG veya WEBP formatlarına izin verilir.'));
     }
     cb(null, true);
@@ -43,7 +50,7 @@ router.get('/:id', authenticateToken, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.put('/:id', authenticateToken, async (req, res, next) => {
+router.put('/:id', authenticateToken, authorizeRole(['admin', 'manager']), async (req, res, next) => {
   try {
     const { owner_name, floor, profession, notes, owner_photo } = req.body;
     await run('UPDATE apartments SET owner_name = ?, floor = ?, profession = ?, notes = ?, owner_photo = ? WHERE id = ?',
@@ -52,7 +59,7 @@ router.put('/:id', authenticateToken, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.post('/:id/photo', authenticateToken, upload.single('photo'), async (req, res, next) => {
+router.post('/:id/photo', authenticateToken, authorizeRole(['admin', 'manager']), upload.single('photo'), async (req, res, next) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'Dosya yüklenemedi.' });
     

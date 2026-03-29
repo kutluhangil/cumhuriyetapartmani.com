@@ -1,6 +1,6 @@
 const express = require('express');
 const { getAll, getOne, run } = require('../db/database');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, authorizeRole } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -25,7 +25,7 @@ router.get('/', authenticateToken, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.post('/', authenticateToken, async (req, res, next) => {
+router.post('/', authenticateToken, authorizeRole(['admin', 'manager']), async (req, res, next) => {
   try {
     const { title, meeting_type, date, time, notes, decisions, attendee_count, status } = req.body;
     if (!title || !date) return res.status(400).json({ error: 'Başlık ve tarih gereklidir.' });
@@ -39,7 +39,7 @@ router.post('/', authenticateToken, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.put('/:id', authenticateToken, async (req, res, next) => {
+router.put('/:id', authenticateToken, authorizeRole(['admin', 'manager']), async (req, res, next) => {
   try {
     const { title, meeting_type, date, time, notes, decisions, attendee_count, status } = req.body;
     const decisionsJson = Array.isArray(decisions) ? JSON.stringify(decisions) :
@@ -53,7 +53,7 @@ router.put('/:id', authenticateToken, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.delete('/:id', authenticateToken, async (req, res, next) => {
+router.delete('/:id', authenticateToken, authorizeRole(['admin', 'manager']), async (req, res, next) => {
   try {
     await run('DELETE FROM meetings WHERE id = ?', [req.params.id]);
     res.json({ success: true });

@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 const multer = require('multer');
 const { getAll, getOne, run } = require('../db/database');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, authorizeRole } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -14,14 +14,20 @@ if (!isVercel && !fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursiv
 
 const storage = multer.diskStorage({
   destination: uploadsDir,
-  filename: (req, file, cb) => cb(null, Date.now() + '-' + Math.round(Math.random() * 1e9) + path.extname(file.originalname))
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const safeName = Math.round(Math.random() * 1e9).toString(36);
+    cb(null, `${Date.now()}-${safeName}${ext}`);
+  }
 });
 const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = ['.pdf', '.jpg', '.jpeg', '.png'];
-    if (allowed.includes(path.extname(file.originalname).toLowerCase())) cb(null, true);
+    const mimeAllowed = ['application/pdf', 'image/jpeg', 'image/png'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowed.includes(ext) && mimeAllowed.includes(file.mimetype)) cb(null, true);
     else cb(new Error('Sadece PDF, JPG ve PNG dosyaları kabul edilmektedir.'));
   }
 });
@@ -67,7 +73,7 @@ router.get('/summary', authenticateToken, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.post('/', authenticateToken, upload.single('invoice'), async (req, res, next) => {
+router.post('/', authenticateToken, authorizeRole(['admin', 'manager']), upload.single('invoice'), async (req, res, next) => {
   try {
     const { title, description, amount, type = 'expense', date } = req.body;
     if (!title || !amount || !date) return res.status(400).json({ error: 'Başlık, tutar ve tarih gereklidir.' });
@@ -80,7 +86,7 @@ router.post('/', authenticateToken, upload.single('invoice'), async (req, res, n
   } catch (err) { next(err); }
 });
 
-router.delete('/:id', authenticateToken, async (req, res, next) => {
+router.delete('/:id', authenticateToken, authorizeRole(['admin', 'manager']), async (req, res, next) => {
   try {
     const expense = await getOne('SELECT * FROM expenses WHERE id = ?', [req.params.id]);
     if (!expense) return res.status(404).json({ error: 'Kayıt bulunamadı.' });

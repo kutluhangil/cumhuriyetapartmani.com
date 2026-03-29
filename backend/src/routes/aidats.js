@@ -1,6 +1,6 @@
 const express = require('express');
 const { getAll, getOne, run } = require('../db/database');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, authorizeRole } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -23,7 +23,7 @@ router.get('/:id/payments', authenticateToken, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.post('/', authenticateToken, async (req, res, next) => {
+router.post('/', authenticateToken, authorizeRole(['admin', 'manager']), async (req, res, next) => {
   try {
     const { month, year, amount } = req.body;
     if (!month || !year || !amount) return res.status(400).json({ error: 'Ay, yıl ve tutar gereklidir.' });
@@ -43,7 +43,7 @@ router.post('/', authenticateToken, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-router.put('/payments/:id', authenticateToken, async (req, res, next) => {
+router.put('/payments/:id', authenticateToken, authorizeRole(['admin', 'manager']), async (req, res, next) => {
   try {
     const { status, note, paid_at } = req.body;
     const paidAt = status === 'paid' ? (paid_at || new Date().toISOString()) : null;

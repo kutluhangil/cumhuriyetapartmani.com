@@ -1,16 +1,16 @@
 const express = require('express');
 const { getAll, run } = require('../db/database');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, authorizeRole } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get('/', async (req, res, next) => {
+router.get('/', authenticateToken, async (req, res, next) => {
   try {
     res.json(await getAll('SELECT * FROM timeline ORDER BY year ASC'));
   } catch (err) { next(err); }
 });
 
-router.post('/', authenticateToken, async (req, res, next) => {
+router.post('/', authenticateToken, authorizeRole(['admin', 'manager']), async (req, res, next) => {
   try {
     const { year, title, description, income, total_expense, maintenance_note, icon } = req.body;
     try {
