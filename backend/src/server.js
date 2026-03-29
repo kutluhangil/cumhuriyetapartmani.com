@@ -25,6 +25,7 @@ app.use(helmet({
       fontSrc: ["'self'", 'fonts.gstatic.com'],
       objectSrc: ["'none'"],
       upgradeInsecureRequests: [],
+      frameAncestors: ["'none'"], // Prevent Clickjacking entirely
     },
   },
 }));
@@ -74,20 +75,22 @@ app.use((req, res, next) => {
 
 // ─── Global error handler ─────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
-  // Only log stack traces in non-production environments
-  if (process.env.NODE_ENV !== 'production') {
-    console.error(err.stack);
-  } else {
-    // In production, log a generalized error descriptor without sensitive paths
-    console.error(`[Error] ${req.method} ${req.originalUrl}: ${err.message}`);
-  }
-
   // Prevent leaking internal details (like DB errors) directly to the client
   const statusCode = err.status || 500;
   let message = 'Sunucu hatası oluştu.';
   
   if (statusCode < 500) {
     message = err.message || message;
+  }
+
+  // Only log stack traces in non-production environments
+  if (process.env.NODE_ENV !== 'production') {
+    console.error(err.stack);
+  } else {
+    // In production, log a generalized error descriptor without sensitive paths
+    // Sanitize any potential JWT from logging stream
+    const safeMsg = (err.message || '').replace(/(ey[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+)/g, '[REDACTED_TOKEN]');
+    console.error(`[Error] ${req.method} ${req.originalUrl}: ${safeMsg}`);
   }
 
   res.status(statusCode).json({ error: message });

@@ -9,13 +9,17 @@ const rateLimit = require('express-rate-limit');
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-// Rate limiting on login — keyed on real IP (trust proxy must be set on app)
+// Rate limiting on login — keyed on real Cloudflare client IP
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
   message: { error: 'Çok fazla giriş denemesi yapıldı, lütfen daha sonra tekrar deneyin.' },
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: (req) => {
+    // Resolve true client IP behind Cloudflare Tunnel instead of proxy loopback
+    return req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for'] || req.ip;
+  }
 });
 
 const COOKIE_OPTIONS = {

@@ -8,6 +8,13 @@ if (!JWT_SECRET) {
 }
 
 function authenticateToken(req, res, next) {
+  // Strict CSRF enforcement for mutating requests — completely stops cross-origin form abuse
+  if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+    if (req.headers['x-requested-with'] !== 'XMLHttpRequest') {
+      return res.status(403).json({ error: 'CSRF denetimi başarısız.' });
+    }
+  }
+
   // Primary: httpOnly cookie. Fallback: Authorization Bearer header (for dev/API tools).
   let token = req.cookies?.token;
 

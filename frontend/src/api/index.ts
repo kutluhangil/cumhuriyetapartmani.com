@@ -3,6 +3,10 @@ import axios from 'axios';
 const api = axios.create({
   baseURL: '/api',
   withCredentials: true, // Required: sends httpOnly cookie on every request
+  headers: {
+    // Basic but highly effective anti-CSRF custom header signature for API requests
+    'X-Requested-With': 'XMLHttpRequest'
+  }
 });
 
 // Handle 401 globally — redirect to login when session expires
