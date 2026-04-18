@@ -14,8 +14,11 @@ api.interceptors.response.use(
   res => res,
   err => {
     if (err.response?.status === 401) {
-      // Only redirect if not already on the login page
-      if (!window.location.pathname.startsWith('/giris')) {
+      const isAuthMe = err.config?.url?.includes('/auth/me');
+      const publicPaths = ['/', '/finansal', '/toplanti-notlari', '/giris'];
+      const currentPath = window.location.pathname;
+
+      if (!isAuthMe && !publicPaths.includes(currentPath)) {
         window.location.href = '/giris';
       }
     }
