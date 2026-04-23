@@ -1,11 +1,8 @@
 import { useState, useEffect } from 'react';
-// Link removed if unused
 import { expensesApi, apartmentsApi, analyticsApi, meetingsApi } from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-
-const formatCurrency = (n: number) =>
-  new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(n);
+import { formatCurrency } from '../../utils/format';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#ffc658'];
 

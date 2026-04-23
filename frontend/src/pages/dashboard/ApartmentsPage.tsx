@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { apartmentsApi } from '../../api';
 import toast from 'react-hot-toast';
-
-const MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+import { MONTHS, formatCurrency } from '../../utils/format';
 
 interface Apartment { id: number; number: number; owner_name: string; floor: number; profession?: string; owner_photo?: string; notes: string; }
 
@@ -202,7 +201,7 @@ export default function ApartmentsPage() {
                     <p className="text-xs text-slate-500 mt-1">{record.paid_at ? new Date(record.paid_at).toLocaleDateString('tr-TR') : 'Tarih Yok'}</p>
                   </div>
                   <div className="text-right flex flex-col items-end">
-                    <p className="font-bold text-sm mb-1">{new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(record.amount || 0)}</p>
+                    <p className="font-bold text-sm mb-1">{formatCurrency(record.amount || 0)}</p>
                     <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${
                       record.status === 'paid' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' :
                       record.status === 'pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' :

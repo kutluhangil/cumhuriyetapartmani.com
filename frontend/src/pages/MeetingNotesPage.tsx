@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { meetingsApi } from '../api';
 import Navbar from '../components/public/Navbar';
+import { meetingStatusConfig } from '../utils/meetings';
 
 interface Meeting {
   id: number;
@@ -14,14 +15,6 @@ interface Meeting {
   attendee_count: number;
   status: string;
 }
-
-const statusConfig: Record<string, { label: string; cls: string }> = {
-  completed: { label: 'Tamamlandı', cls: 'bg-green-100 text-green-700' },
-  info: { label: 'Bilgi', cls: 'bg-blue-100 text-blue-700' },
-  important: { label: 'Önemli', cls: 'bg-amber-100 text-amber-700' },
-  archived: { label: 'Arşiv', cls: 'bg-gray-100 text-gray-700' },
-  planned: { label: 'Planlandı', cls: 'bg-slate-100 text-slate-700' },
-};
 
 export default function MeetingNotesPage() {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
@@ -84,7 +77,7 @@ export default function MeetingNotesPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {meetings.map(m => {
-              const s = statusConfig[m.status] || statusConfig.archived;
+              const s = meetingStatusConfig[m.status] || meetingStatusConfig.archived;
               return (
                 <div key={m.id} className="bg-white dark:bg-white/5 rounded-xl border border-primary/5 p-6 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex justify-between items-start mb-3">

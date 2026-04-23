@@ -4,9 +4,8 @@ import { aidatsApi, expensesApi } from '../../api';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
-
-const MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
-const formatCurrency = (n: number) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(n);
+import { MONTHS, formatCurrency } from '../../utils/format';
+import InvoicePreviewModal from '../../components/ui/InvoicePreviewModal';
 
 const statusConfig = {
   paid: { label: '✔ Ödendi', cls: 'bg-green-100 text-green-700 hover:shadow-sm hover:scale-105 transition-all duration-200 dark:bg-green-500/20 dark:text-green-400 border border-transparent dark:border-green-500/30' },
@@ -317,7 +316,7 @@ export default function AidatPage() {
                     <p className="text-xs text-slate-500">{new Date(exp.date).toLocaleDateString('tr-TR')}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-bold text-red-500">-{new Intl.NumberFormat('tr-TR').format(exp.amount)} ₺</p>
+                    <p className="text-sm font-bold text-red-500">-{formatCurrency(exp.amount)}</p>
                     {exp.invoice_path && (
                       <button onClick={() => setPreviewUrl(`/uploads/${exp.invoice_path}`)} className="text-[10px] text-primary flex items-center gap-1 justify-end">
                         <span className="material-symbols-outlined text-xs">visibility</span> Fatura
@@ -331,18 +330,7 @@ export default function AidatPage() {
         </div>
       </div>
 
-      {/* Invoice modal */}
-      {previewUrl && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setPreviewUrl(null)}>
-          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-4 border-b">
-              <h3 className="font-bold">Fatura</h3>
-              <button onClick={() => setPreviewUrl(null)}><span className="material-symbols-outlined">close</span></button>
-            </div>
-            {previewUrl.endsWith('.pdf') ? <iframe src={previewUrl} className="w-full h-[70vh]" /> : <img src={previewUrl} alt="Fatura" className="w-full" />}
-          </div>
-        </div>
-      )}
+      {previewUrl && <InvoicePreviewModal url={previewUrl} onClose={() => setPreviewUrl(null)} />}
     </div>
   );
 }

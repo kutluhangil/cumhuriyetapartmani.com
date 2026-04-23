@@ -1,14 +1,7 @@
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { meetingsApi, apartmentsApi } from '../../api';
-
-const statusConfig: Record<string, { label: string; cls: string }> = {
-  completed: { label: 'Tamamlandı', cls: 'bg-green-100 text-green-700' },
-  info: { label: 'Bilgi', cls: 'bg-blue-100 text-blue-700' },
-  important: { label: 'Önemli', cls: 'bg-amber-100 text-amber-700' },
-  archived: { label: 'Arşiv', cls: 'bg-gray-100 text-gray-700' },
-  planned: { label: 'Planlandı', cls: 'bg-slate-100 text-slate-700' },
-};
+import { meetingStatusConfig, MEETING_TYPES } from '../../utils/meetings';
 
 interface Meeting { id: number; title: string; meeting_type: string; date: string; time: string; notes: string; decisions: string[]; attendee_count: number; status: string; }
 interface Apartment { id: number; number: number; owner_name: string; floor: number; }
@@ -71,7 +64,7 @@ export default function MeetingManagePage() {
                 <div>
                   <label className="block text-sm font-medium mb-1.5">Toplantı Türü</label>
                   <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" value={form.meeting_type} onChange={e => setForm(f => ({ ...f, meeting_type: e.target.value }))}>
-                    {['OLAĞAN GENEL KURUL', 'YÖNETİM KURULU', 'ACİL TOPLANTI', 'YILLIK TOPLANTI', 'GENEL TOPLANTI'].map(t => (
+                    {MEETING_TYPES.map(t => (
                       <option key={t} value={t}>{t}</option>
                     ))}
                   </select>
@@ -79,7 +72,7 @@ export default function MeetingManagePage() {
                 <div>
                   <label className="block text-sm font-medium mb-1.5">Durum</label>
                   <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
-                    {Object.entries(statusConfig).map(([v, { label }]) => <option key={v} value={v}>{label}</option>)}
+                    {Object.entries(meetingStatusConfig).map(([v, { label }]) => <option key={v} value={v}>{label}</option>)}
                   </select>
                 </div>
                 <div>
@@ -116,7 +109,7 @@ export default function MeetingManagePage() {
               {meetings.length === 0 ? (
                 <div className="p-6 text-center text-slate-500 text-sm">Henüz toplantı kaydı yok.</div>
               ) : meetings.map(m => {
-                const s = statusConfig[m.status] || statusConfig.archived;
+                const s = meetingStatusConfig[m.status] || meetingStatusConfig.archived;
                 return (
                   <div key={m.id} className="p-5 hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors">
                     <div className="flex justify-between items-start gap-3 mb-2">

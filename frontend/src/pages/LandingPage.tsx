@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { timelineApi } from '../api';
 import Navbar from '../components/public/Navbar';
+import { formatCurrency } from '../utils/format';
 
 interface TimelineEntry {
   id: number;
@@ -14,9 +15,6 @@ interface TimelineEntry {
   maintenance_note: string;
   icon: string;
 }
-
-const formatCurrency = (n: number) =>
-  new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(n);
 
 export default function LandingPage() {
   const [timeline, setTimeline] = useState<TimelineEntry[]>([]);

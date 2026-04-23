@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { expensesApi } from '../api';
 import Navbar from '../components/public/Navbar';
-
-const formatCurrency = (n: number) =>
-  new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(n);
+import { formatCurrency } from '../utils/format';
+import InvoicePreviewModal from '../components/ui/InvoicePreviewModal';
 
 interface Expense {
   id: number;
@@ -174,24 +173,7 @@ export default function FinancePage() {
         </div>
       </main>
 
-      {/* Invoice preview modal */}
-      {previewUrl && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setPreviewUrl(null)}>
-          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-4 border-b">
-              <h3 className="font-bold">Fatura Önizleme</h3>
-              <button onClick={() => setPreviewUrl(null)} className="p-2 hover:bg-slate-100 rounded-lg">
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-            {previewUrl.endsWith('.pdf') ? (
-              <iframe src={previewUrl} className="w-full h-[70vh]" title="Fatura" />
-            ) : (
-              <img src={previewUrl} alt="Fatura" className="w-full" />
-            )}
-          </div>
-        </div>
-      )}
+      {previewUrl && <InvoicePreviewModal url={previewUrl} onClose={() => setPreviewUrl(null)} />}
 
       {/* Footer */}
       <footer className="py-8 border-t border-slate-200 dark:border-slate-800 px-5">

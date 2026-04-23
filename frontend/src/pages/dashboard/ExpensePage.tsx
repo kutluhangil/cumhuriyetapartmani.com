@@ -4,8 +4,8 @@ import { expensesApi } from '../../api';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
-
-const formatCurrency = (n: number) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(n);
+import { formatCurrency } from '../../utils/format';
+import InvoicePreviewModal from '../../components/ui/InvoicePreviewModal';
 
 interface Expense { id: number; title: string; description: string; amount: number; type: string; date: string; invoice_path: string | null; invoice_original_name: string | null; }
 
@@ -249,14 +249,7 @@ export default function ExpensePage() {
         </div>
       </div>
 
-      {previewUrl && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setPreviewUrl(null)}>
-          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-4 border-b"><h3 className="font-bold">Fatura</h3><button onClick={() => setPreviewUrl(null)}><span className="material-symbols-outlined">close</span></button></div>
-            {previewUrl.endsWith('.pdf') ? <iframe src={previewUrl} className="w-full h-[70vh]" /> : <img src={previewUrl} alt="Fatura" className="w-full" />}
-          </div>
-        </div>
-      )}
+      {previewUrl && <InvoicePreviewModal url={previewUrl} onClose={() => setPreviewUrl(null)} />}
     </div>
   );
 }

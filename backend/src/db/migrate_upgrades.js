@@ -74,16 +74,19 @@ async function migrate() {
       }
     }
 
-    // Seed some initial announcements & maintenance data
-    const existingAnnouncements = await run(`SELECT COUNT(*) as count FROM announcements`);
-    if (existingAnnouncements.lastInsertRowid === undefined || true) { // simple check, manually insert if empty
+    // Seed initial data only if tables are empty
+    const { getOne } = require('./database');
+    const annCount = await getOne(`SELECT COUNT(*) as count FROM announcements`);
+    if (Number(annCount.count) === 0) {
       try {
-        await run(`INSERT INTO announcements (title, message, date, created_by) VALUES 
+        await run(`INSERT INTO announcements (title, message, date, created_by) VALUES
           ('Su Kesintisi', 'Yarın 10:00 - 14:00 arasında şebeke çalışması nedeniyle su kesintisi olacaktır.', '2026-03-20', 1)`);
-        await run(`INSERT INTO maintenance (maintenance_type, description, last_maintenance_date, next_maintenance_date, created_by) VALUES 
+        await run(`INSERT INTO maintenance (maintenance_type, description, last_maintenance_date, next_maintenance_date, created_by) VALUES
           ('Asansör Bakımı', 'Aylık periyodik A bloğu asansör bakımı', '2026-03-12', '2026-04-12', 1)`);
         console.log('✅ Seeded initial announcements and maintenance data.');
-      } catch(e) { console.log('Seed skip/fail: ', e.message) }
+      } catch(e) { console.log('Seed skip/fail: ', e.message); }
+    } else {
+      console.log('ℹ️ Data already exists, skipping seed.');
     }
 
     console.log('🎉 Migration complete!');
